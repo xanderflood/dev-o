@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+//TODO precedence-sorted options
+// type Option interface {
+// 	Apply(*config) error
+// 	Precedence() uint
+// }
+
 //Option dev-o config functors
 type Option func(*config) error
 
@@ -37,7 +43,10 @@ func WhileMonitoring(subjects ...string) Option {
 type config struct {
 	gopath   string
 	target   string
+	binname  string
+	binargs  []string
 	subjects []string
+	environ  []string
 	waitMS   uint64
 }
 
@@ -46,6 +55,7 @@ type config struct {
 func Autoreload(options ...Option) (sync.Locker, error) {
 	var c config
 
+	// defaults //
 	c.gopath = filepath.Join(strings.TrimSpace(os.Getenv("GOPATH")), "src")
 	if len(c.gopath) == 0 {
 		return nil, errors.New("GOPATH is not set")
@@ -53,6 +63,21 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 
 	c.waitMS = 500
 
+	c.binname = os.Args[0]
+	if c.binname[0] != '/' {
+		wd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+
+		c.binname = filepath.Join(wd, c.binname)
+	}
+
+	c.binargs = os.Args[1:]
+
+	c.environ = os.Environ()
+
+	// overrides //
 	for _, option := range options {
 		err := option(&c)
 		if err != nil {
@@ -60,6 +85,7 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 		}
 	}
 
+	// start //
 	err := autoreload(c)
 	if err != nil {
 		return nil, err
