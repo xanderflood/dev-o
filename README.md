@@ -1,22 +1,3 @@
-A super fun Rails-like autoloading daemon that creates a .
+A super fun Rails-y autoloading daemon for go servers. The basic idea is that `dev-o` will create a goroutine that monitors your go source files. Once it detects a change, `dev-o` begins attempting to rebuild the target package, and once it successfully rebuilds, `dev-o` will `exec  the current process into the new executable preserving command-line arguments and environment variables.
 
-Just call
-
-```go
-import (
-
-	devo "github.com/xanderflood/dev-o"
-)
-
-func main() {
-	// if we're in dev mode, start dev-o
-	if len(os.Env("DEVO_DAEMON")) > 0 {
-		devo.Autoreload(
-			WithTarget("github.com/xanderflood/my-app/cmd/start"), //the `main` package to target
-			WhileMonitoring( //directories to monitor
-        "github.com/xanderflood/my-app/cmd",
-        "github.com/xanderflood/my-app/lib",
-        "github.com/xanderflood/my-app/vendor",
-		)
-	}
-```
+A minimal-ish example can be found [here](https://github.com/xanderflood/dev-o/blob/master/cmd/test.go). Build and start this executable, and then try modifying the list of integers to print and saving the file.
