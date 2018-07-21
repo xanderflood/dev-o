@@ -2,6 +2,7 @@ package devo
 
 import (
 	"os/exec"
+	"sync"
 	"syscall"
 
 	perrors "github.com/pkg/errors"
@@ -11,17 +12,21 @@ import (
 //go:generate counterfeiter . Binner
 type Binner interface {
 	Build() error
-	Exec() error
+	Exec()
 }
 
 //BinnerI standard binner
 type BinnerI struct {
 	config
+	lock sync.Locker
 }
 
 //NewBinner new Binner
 func NewBinner(c config) *BinnerI {
-	return &BinnerI{c}
+	return &BinnerI{
+		config: c,
+		lock:   &sync.Mutex{},
+	}
 }
 
 //Build build the target package
@@ -44,5 +49,8 @@ func (b *BinnerI) Build() error {
 
 //Exec the binary
 func (b *BinnerI) Exec() {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
 	syscall.Exec(b.binname, b.binargs, b.environ)
 }
