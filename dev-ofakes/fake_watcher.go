@@ -8,69 +8,74 @@ import (
 )
 
 type FakeWatcher struct {
-	LoadStateStub        func() (devo.SubjectState, error)
-	loadStateMutex       sync.RWMutex
-	loadStateArgsForCall []struct{}
-	loadStateReturns     struct {
-		result1 devo.SubjectState
-		result2 error
+	WasUpdatedStub        func(update ...struct{}) bool
+	wasUpdatedMutex       sync.RWMutex
+	wasUpdatedArgsForCall []struct {
+		update []struct{}
 	}
-	loadStateReturnsOnCall map[int]struct {
-		result1 devo.SubjectState
-		result2 error
+	wasUpdatedReturns struct {
+		result1 bool
+	}
+	wasUpdatedReturnsOnCall map[int]struct {
+		result1 bool
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeWatcher) LoadState() (devo.SubjectState, error) {
-	fake.loadStateMutex.Lock()
-	ret, specificReturn := fake.loadStateReturnsOnCall[len(fake.loadStateArgsForCall)]
-	fake.loadStateArgsForCall = append(fake.loadStateArgsForCall, struct{}{})
-	fake.recordInvocation("LoadState", []interface{}{})
-	fake.loadStateMutex.Unlock()
-	if fake.LoadStateStub != nil {
-		return fake.LoadStateStub()
+func (fake *FakeWatcher) WasUpdated(update ...struct{}) bool {
+	fake.wasUpdatedMutex.Lock()
+	ret, specificReturn := fake.wasUpdatedReturnsOnCall[len(fake.wasUpdatedArgsForCall)]
+	fake.wasUpdatedArgsForCall = append(fake.wasUpdatedArgsForCall, struct {
+		update []struct{}
+	}{update})
+	fake.recordInvocation("WasUpdated", []interface{}{update})
+	fake.wasUpdatedMutex.Unlock()
+	if fake.WasUpdatedStub != nil {
+		return fake.WasUpdatedStub(update...)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fake.loadStateReturns.result1, fake.loadStateReturns.result2
+	return fake.wasUpdatedReturns.result1
 }
 
-func (fake *FakeWatcher) LoadStateCallCount() int {
-	fake.loadStateMutex.RLock()
-	defer fake.loadStateMutex.RUnlock()
-	return len(fake.loadStateArgsForCall)
+func (fake *FakeWatcher) WasUpdatedCallCount() int {
+	fake.wasUpdatedMutex.RLock()
+	defer fake.wasUpdatedMutex.RUnlock()
+	return len(fake.wasUpdatedArgsForCall)
 }
 
-func (fake *FakeWatcher) LoadStateReturns(result1 devo.SubjectState, result2 error) {
-	fake.LoadStateStub = nil
-	fake.loadStateReturns = struct {
-		result1 devo.SubjectState
-		result2 error
-	}{result1, result2}
+func (fake *FakeWatcher) WasUpdatedArgsForCall(i int) []struct{} {
+	fake.wasUpdatedMutex.RLock()
+	defer fake.wasUpdatedMutex.RUnlock()
+	return fake.wasUpdatedArgsForCall[i].update
 }
 
-func (fake *FakeWatcher) LoadStateReturnsOnCall(i int, result1 devo.SubjectState, result2 error) {
-	fake.LoadStateStub = nil
-	if fake.loadStateReturnsOnCall == nil {
-		fake.loadStateReturnsOnCall = make(map[int]struct {
-			result1 devo.SubjectState
-			result2 error
+func (fake *FakeWatcher) WasUpdatedReturns(result1 bool) {
+	fake.WasUpdatedStub = nil
+	fake.wasUpdatedReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeWatcher) WasUpdatedReturnsOnCall(i int, result1 bool) {
+	fake.WasUpdatedStub = nil
+	if fake.wasUpdatedReturnsOnCall == nil {
+		fake.wasUpdatedReturnsOnCall = make(map[int]struct {
+			result1 bool
 		})
 	}
-	fake.loadStateReturnsOnCall[i] = struct {
-		result1 devo.SubjectState
-		result2 error
-	}{result1, result2}
+	fake.wasUpdatedReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
 }
 
 func (fake *FakeWatcher) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.loadStateMutex.RLock()
-	defer fake.loadStateMutex.RUnlock()
+	fake.wasUpdatedMutex.RLock()
+	defer fake.wasUpdatedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

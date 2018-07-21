@@ -1,7 +1,6 @@
 package devo
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,29 +13,35 @@ type SubjectState map[string]time.Time
 //Watcher provides updates on the state
 //go:generate counterfeiter . Watcher
 type Watcher interface {
-	LoadState() (SubjectState, error)
+	WasUpdated(update ...struct{}) bool
 }
 
 //GoFileWatcher watch go files in subdirectories of the subject directories
 type GoFileWatcher struct {
 	subjects []string
+	state    SubjectState
 }
 
 //NewGoFileWatcher new GoFileWatcher
 func NewGoFileWatcher(subjects []string) *GoFileWatcher {
-	return &GoFileWatcher{
+	g := &GoFileWatcher{
 		subjects: subjects,
 	}
+
+	g.WasUpdated(struct{}{})
+
+	return g
 }
 
-//LoadState get the states of the files
-func (w *GoFileWatcher) LoadState() (SubjectState, error) {
-	result := map[string]time.Time{}
-
+//WasUpdated attempts to stat all go files and returns true
+//if it sees that any of them were updated. Also updates the
+//underlying state of this object
+func (w *GoFileWatcher) WasUpdated(bootstrap ...struct{}) bool {
+	var updated bool
 	for _, subject := range w.subjects {
 		err := filepath.Walk(subject, func(path string, file os.FileInfo, err error) error {
 			if err != nil {
-				fmt.Printf("failed statting file %s: %v\n", path, err)
+				//TODO log
 				return nil
 			}
 
@@ -47,14 +52,21 @@ func (w *GoFileWatcher) LoadState() (SubjectState, error) {
 			//TODO make sure the executable is ALWAYS excluded, even when it happens to end in .go or something weird like that
 			//first, learn how t.f. `go build` decides where to put the executable and what to name it. can I control that?
 
-			result[path] = file.ModTime()
+			touched := file.ModTime()
+			if len(bootstrap) != 0 {
+				if touched.After(w.state[path]) {
+					updated = true
+				}
+			}
+
+			w.state[path] = touched
 			return nil
 		})
 
 		if err != nil {
-			fmt.Printf("failed walking subject %s: %v\n", subject, err)
+			//TODO log
 		}
 	}
 
-	return result, nil
+	return updated
 }
