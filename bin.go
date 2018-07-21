@@ -31,7 +31,7 @@ func NewBinner(c config) *BinnerI {
 
 //Build build the target package
 func (b *BinnerI) Build() error {
-	cmd := exec.Command("go", "build")
+	cmd := exec.Command("go", "build", "-o", b.binpath)
 	cmd.Dir = b.target
 
 	err := cmd.Start()
@@ -52,5 +52,5 @@ func (b *BinnerI) Exec() {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	syscall.Exec(b.binname, b.binargs, b.environ)
+	syscall.Exec(b.binpath, b.binargs, b.environ)
 }

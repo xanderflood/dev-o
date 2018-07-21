@@ -39,6 +39,7 @@ type config struct {
 	gopath   string
 	target   string
 	binname  string
+	binpath  string
 	binargs  []string
 	subjects []string
 	environ  []string
@@ -58,19 +59,7 @@ func defaultConfig() (config, error) {
 	}
 
 	c.waitMS = 500
-
-	c.binname = os.Args[0]
-	if c.binname[0] != '/' {
-		wd, err := os.Getwd()
-		if err != nil {
-			return config{}, err
-		}
-
-		c.binname = filepath.Join(wd, c.binname)
-	}
-
 	c.binargs = os.Args
-
 	c.environ = os.Environ()
 
 	return c, nil
@@ -87,6 +76,14 @@ func configure(options ...Option) (config, error) {
 		if err != nil {
 			return config{}, err
 		}
+	}
+
+	if c.binname == "" {
+		c.binname = filepath.Base(c.target)
+	}
+
+	if c.binpath == "" {
+		c.binpath = filepath.Join(c.target, c.binname)
 	}
 
 	return c, nil
