@@ -25,7 +25,7 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 	return binner.lock, nil
 }
 
-//TODO much of this is a littl inconvenient to test, but
+//TODO much of this is a little inconvenient to test, but
 //AutoreloadDaemon can and should be tested be pretty thoroughly
 
 //AutoreloadDaemon AutoreloadDaemon
@@ -52,7 +52,7 @@ func AutoreloadDaemon(
 		} else if updated {
 			err := binner.Build()
 			if err != nil {
-				//TODO log
+				//TOOD log
 				continue
 			}
 
