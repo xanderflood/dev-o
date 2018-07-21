@@ -26,6 +26,7 @@ type GoFileWatcher struct {
 func NewGoFileWatcher(subjects []string) *GoFileWatcher {
 	g := &GoFileWatcher{
 		subjects: subjects,
+		state:    SubjectState{},
 	}
 
 	g.WasUpdated(struct{}{})
@@ -53,7 +54,7 @@ func (w *GoFileWatcher) WasUpdated(bootstrap ...struct{}) bool {
 			//first, learn how t.f. `go build` decides where to put the executable and what to name it. can I control that?
 
 			touched := file.ModTime()
-			if len(bootstrap) != 0 {
+			if len(bootstrap) == 0 {
 				if touched.After(w.state[path]) {
 					updated = true
 				}
