@@ -69,7 +69,7 @@ func defaultConfig() (config, error) {
 		c.binname = filepath.Join(wd, c.binname)
 	}
 
-	c.binargs = os.Args[1:]
+	c.binargs = os.Args
 
 	c.environ = os.Environ()
 
