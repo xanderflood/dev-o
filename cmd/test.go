@@ -8,7 +8,7 @@ import (
 	"github.com/xanderflood/dev-o"
 )
 
-var printVals = []int{4, 1000, 6}
+var printVals = []int{4, 5, 6}
 
 const waitSeconds = 1
 
