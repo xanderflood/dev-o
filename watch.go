@@ -35,7 +35,7 @@ func (w *GoFileWatcher) LastUpdated() time.Time {
 	for _, subject := range w.subjects {
 		err := filepath.Walk(subject, func(path string, file os.FileInfo, err error) error {
 			if err != nil {
-				//TODO log
+				w.logger.Errorf("failed checking file %s: %s", path, err)
 				return nil
 			}
 
@@ -56,7 +56,7 @@ func (w *GoFileWatcher) LastUpdated() time.Time {
 		})
 
 		if err != nil {
-			//TODO log
+			w.logger.Error("failed walking files:", err)
 		}
 	}
 
