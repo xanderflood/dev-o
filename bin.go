@@ -1,6 +1,9 @@
 package devo
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"os/exec"
 	"sync"
 	"syscall"
@@ -34,14 +37,35 @@ func (b *BinnerI) Build() error {
 	cmd := exec.Command("go", "build", "-o", b.binpath)
 	cmd.Dir = b.target
 
-	err := cmd.Start()
+	stdout, err := cmd.StderrPipe()
+	if err != nil {
+		return perrors.Wrap(err, fmt.Sprintf("failed to open build process stdout for readings"))
+	}
+
+	doneChan := make(chan struct{})
+	var readError error
+	var message string
+	go func() {
+		buf := bytes.NewBuffer([]byte{})
+		_, readError = io.Copy(buf, stdout)
+		message = buf.String()
+
+		doneChan <- struct{}{}
+	}()
+
+	err = cmd.Start()
 	if err != nil {
 		return perrors.Wrap(err, "build not started")
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		return perrors.Wrap(err, "build failed")
+		<-doneChan
+		if readError != nil {
+			return perrors.Wrap(readError, fmt.Sprintf("build failed (could not read the build output)"))
+		}
+
+		return perrors.Wrap(err, fmt.Sprintf("build failed - %s", message))
 	}
 
 	return nil

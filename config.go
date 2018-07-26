@@ -24,13 +24,21 @@ func WithTarget(target string) Option {
 	}
 }
 
-//WhileMonitoring *.go files in these directories for changes
+//WhileMonitoring monitor *.go files in these directories for changes
 func WhileMonitoring(subjects ...string) Option {
 	return func(c *config) error {
 		c.subjects = make([]string, len(subjects))
 		for i, subject := range subjects {
 			c.subjects[i] = filepath.Join(c.gopath, subject)
 		}
+		return nil
+	}
+}
+
+//WithLogger with a logger
+func WithLogger(logger Logger) Option {
+	return func(c *config) error {
+		c.logger = logger
 		return nil
 	}
 }
@@ -44,11 +52,8 @@ type config struct {
 	subjects []string
 	environ  []string
 	waitMS   uint64
+	logger   Logger
 }
-
-//TODO add a logger that can be
-//configured to be a named pipe
-//insead of stdout
 
 func defaultConfig() (config, error) {
 	var c config
@@ -61,6 +66,7 @@ func defaultConfig() (config, error) {
 	c.waitMS = 500
 	c.binargs = os.Args
 	c.environ = os.Environ()
+	c.logger = NewStandardLogger(LogLevelInfo)
 
 	return c, nil
 }

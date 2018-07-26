@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//Autoreload asynchronously replace this process with updated versions
+//Autoreload Asynchronously replace this process with updated versions
 //this process is compiled from the go file
 func Autoreload(options ...Option) (sync.Locker, error) {
 	c, err := configure(options...)
@@ -18,6 +18,7 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 	go AutoreloadDaemon(
 		binner,
 		watcher,
+		c.logger,
 		c.waitMS,
 	)
 
@@ -28,10 +29,13 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 //TODO much of this is a little inconvenient to test, but
 //AutoreloadDaemon can and should be tested be pretty thoroughly
 
+//TODO refactor the FSM into something that looks more fun
+
 //AutoreloadDaemon AutoreloadDaemon
 func AutoreloadDaemon(
 	binner Binner,
 	watcher Watcher,
+	logger Logger,
 	waitMS uint64,
 ) {
 	var updated, built, stateChanged bool
@@ -44,15 +48,21 @@ func AutoreloadDaemon(
 		}
 
 		if built {
+			logger.Info("Restarting")
 			binner.Exec()
 
-			//it didn't exec, try rebuilding
-			//send to the error log
+			logger.Error("--- didn't restart")
 			built = false
 		} else if updated {
+			logger.Info("Rebuilding")
 			err := binner.Build()
 			if err != nil {
-				//TOOD log
+				logger.Info("--- failed", err.Error())
+
+				//TODO: this parrots the same build error once a second
+				//instead, maintain a lastBuiltMoment and a lastModifiedMoment
+				//and only rebuild when they're out of whack
+
 				continue
 			}
 

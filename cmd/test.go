@@ -1,19 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/xanderflood/dev-o"
 )
 
-var printVals = []int{4, 5, 6}
+var printVals = []int{4, 1000, 6}
 
 const waitSeconds = 1
-
-//TODO figure out why `go` isn't in $PATH when using exec.Command
-const goExecutable = "/usr/lib/go-1.10/bin/go"
 
 func main() {
 	lock, err := devo.Autoreload(
