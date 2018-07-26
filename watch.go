@@ -7,9 +7,6 @@ import (
 	"time"
 )
 
-//SubjectState state of the subjects
-type SubjectState map[string]time.Time
-
 //Watcher provides updates on the state
 //go:generate counterfeiter . Watcher
 type Watcher interface {
@@ -18,15 +15,13 @@ type Watcher interface {
 
 //GoFileWatcher watch go files in subdirectories of the subject directories
 type GoFileWatcher struct {
-	subjects []string
-	state    SubjectState
+	config
 }
 
 //NewGoFileWatcher new GoFileWatcher
-func NewGoFileWatcher(subjects []string) *GoFileWatcher {
+func NewGoFileWatcher(c config) *GoFileWatcher {
 	g := &GoFileWatcher{
-		subjects: subjects,
-		state:    SubjectState{},
+		config: c,
 	}
 
 	return g
@@ -48,8 +43,9 @@ func (w *GoFileWatcher) LastUpdated() time.Time {
 				return nil
 			}
 
-			//TODO make sure the executable is ALWAYS excluded, even when it happens to end in .go or something weird like that
-			//first, learn how t.f. `go build` decides where to put the executable and what to name it. can I control that?
+			if filepath.Clean(path) == filepath.Clean(w.binpath) {
+				return nil
+			}
 
 			touched := file.ModTime()
 

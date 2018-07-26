@@ -14,7 +14,7 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 	}
 
 	binner := NewBinner(c)
-	watcher := NewGoFileWatcher(c.subjects)
+	watcher := NewGoFileWatcher(c)
 	go AutoreloadDaemon(
 		binner,
 		watcher,
