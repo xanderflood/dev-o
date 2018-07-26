@@ -29,8 +29,6 @@ func Autoreload(options ...Option) (sync.Locker, error) {
 //TODO much of this is a little inconvenient to test, but
 //AutoreloadDaemon can and should be tested be pretty thoroughly
 
-//TODO refactor the FSM into something that looks more fun
-
 //AutoreloadDaemon AutoreloadDaemon
 func AutoreloadDaemon(
 	binner Binner,
