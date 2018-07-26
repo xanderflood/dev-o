@@ -65,7 +65,7 @@ func (b *BinnerI) Build() error {
 			return perrors.Wrap(readError, fmt.Sprintf("build failed (could not read the build output)"))
 		}
 
-		return perrors.Wrap(err, fmt.Sprintf("build failed - %s", message))
+		return perrors.Wrap(err, message)
 	}
 
 	return nil

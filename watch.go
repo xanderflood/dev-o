@@ -13,7 +13,7 @@ type SubjectState map[string]time.Time
 //Watcher provides updates on the state
 //go:generate counterfeiter . Watcher
 type Watcher interface {
-	WasUpdated(update ...struct{}) bool
+	LastUpdated() time.Time
 }
 
 //GoFileWatcher watch go files in subdirectories of the subject directories
@@ -29,16 +29,14 @@ func NewGoFileWatcher(subjects []string) *GoFileWatcher {
 		state:    SubjectState{},
 	}
 
-	g.WasUpdated(struct{}{})
-
 	return g
 }
 
-//WasUpdated attempts to stat all go files and returns true
+//LastUpdated attempts to stat all go files and returns true
 //if it sees that any of them were updated. Also updates the
 //underlying state of this object
-func (w *GoFileWatcher) WasUpdated(bootstrap ...struct{}) bool {
-	var updated bool
+func (w *GoFileWatcher) LastUpdated() time.Time {
+	var lastUpdated time.Time
 	for _, subject := range w.subjects {
 		err := filepath.Walk(subject, func(path string, file os.FileInfo, err error) error {
 			if err != nil {
@@ -54,13 +52,10 @@ func (w *GoFileWatcher) WasUpdated(bootstrap ...struct{}) bool {
 			//first, learn how t.f. `go build` decides where to put the executable and what to name it. can I control that?
 
 			touched := file.ModTime()
-			if len(bootstrap) == 0 {
-				if touched.After(w.state[path]) {
-					updated = true
-				}
-			}
 
-			w.state[path] = touched
+			if touched.After(lastUpdated) {
+				lastUpdated = touched
+			}
 			return nil
 		})
 
@@ -69,5 +64,5 @@ func (w *GoFileWatcher) WasUpdated(bootstrap ...struct{}) bool {
 		}
 	}
 
-	return updated
+	return lastUpdated
 }

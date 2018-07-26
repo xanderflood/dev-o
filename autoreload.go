@@ -38,41 +38,33 @@ func AutoreloadDaemon(
 	logger Logger,
 	waitMS uint64,
 ) {
-	var updated, built, stateChanged bool
+	var lastUpdated, lastBuilt time.Time
+
+	//TODO better way to set this initally?
+	//leaving it at zero means we immediately rebuild :/
+	//could use an envar to track the build time even
+	//across restarts
+	lastBuilt = time.Now()
 	for {
-		if stateChanged {
-			//wait for the interval
-			<-time.NewTimer(time.Duration(waitMS) * time.Millisecond).C
-		} else {
-			stateChanged = true
+		//wait for the interval
+		<-time.NewTimer(time.Duration(waitMS) * time.Millisecond).C
+
+		lastUpdated = watcher.LastUpdated()
+		if lastBuilt.After(lastUpdated) {
+			continue
 		}
 
-		if built {
-			logger.Info("Restarting")
-			binner.Exec()
-
-			logger.Error("--- didn't restart")
-			built = false
-		} else if updated {
-			logger.Info("Rebuilding")
-			err := binner.Build()
-			if err != nil {
-				logger.Info("--- failed", err.Error())
-
-				//TODO: this parrots the same build error once a second
-				//instead, maintain a lastBuiltMoment and a lastModifiedMoment
-				//and only rebuild when they're out of whack
-
-				continue
-			}
-
-			built = true
-			stateChanged = false
-		} else {
-			if watcher.WasUpdated() {
-				updated = true
-				stateChanged = true
-			}
+		logger.Info("Rebuilding")
+		lastBuilt = time.Now()
+		err := binner.Build()
+		if err != nil {
+			logger.Infof("--- failed:\n%s", err.Error())
+			continue
 		}
+
+		logger.Info("Restarting")
+		binner.Exec()
+
+		logger.Error("--- didn't restart")
 	}
 }
